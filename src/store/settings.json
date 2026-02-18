@@ -1,0 +1,25 @@
+{
+  "1273430230798958593": {
+    "links": {
+      "roblox": "https://www.roblox.com/communities/35779489/Xeins#!/about",
+      "discord": "https://discord.gg/xeins",
+      "tiktok": "https://www.tiktok.com/@xeinsclan"
+    },
+    "channels": {
+      "LOG_CHANNEL_ID": "1469689684031701044",
+      "MODLOG_CHANNEL_ID": "1469733655198040115",
+      "THANKS_CHANNEL_ID": "1273634278294425772"
+    },
+    "roles": {
+      "autoRoleId": null
+    },
+    "features": {
+      "privacyMode": true
+    },
+    "voice": {
+      "mascotChannelId": null,
+      "ghostMode": true,
+      "enabled": false
+    }
+  }
+}
