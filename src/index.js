@@ -1,21 +1,20 @@
 // src/index.js
 
+require("dotenv").config();
+const { startMonitorServer } = require("./monitor/server");
+
+// ---- process crash & warning hooks (safe) ----
 process.on("unhandledRejection", (reason) => {
   console.error("🔥 unhandledRejection:", reason);
-  append("unhandledRejection", reason);
+  try { append("unhandledRejection", reason); } catch {}
 });
 process.on("uncaughtException", (err) => {
   console.error("🔥 uncaughtException:", err);
-  append("uncaughtException", err);
+  try { append("uncaughtException", err); } catch {}
 });
 process.on("warning", (w) => {
   console.warn("⚠️ process warning:", w);
 });
-
-require("dotenv").config();
-
-const { append } = require("./utils/persistLog");
-
 const { flushAll } = require("./core/storage");
 const fs = require("fs");
 const path = require("path");
@@ -32,6 +31,15 @@ const client = new Client({
 });
 
 client.commands = new Collection();
+
+
+// ✅ Start local monitor server (health/stats)
+try {
+  startMonitorServer(client);
+} catch (e) {
+  console.error("[monitor] failed to start:", e);
+}
+
 
 // ----------------------
 // Stability hooks (full)
@@ -334,9 +342,6 @@ async function onBotReady() {
   }, 30_000);
 
 }
-
-const { startMonitorServer } = require("./monitor/server");
-
 client.once("ready", onBotReady);
 client.once("clientReady", onBotReady);
 
