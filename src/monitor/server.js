@@ -1,7 +1,5 @@
+cat > ~/xeinsbot/src/monitor/server.js <<'EOF'
 // src/monitor/server.js
-// Stable monitor server (local-only by default).
-// Fixes: SyntaxError: Unexpected end of input
-
 "use strict";
 
 const http = require("http");
@@ -18,30 +16,6 @@ function sendJson(res, statusCode, payload) {
     "Cache-Control": "no-store",
   });
   res.end(body);
-}
-
-function getClientSnapshot(client) {
-  try {
-    return {
-      ready: typeof client?.isReady === "function" ? client.isReady() : null,
-      wsPing: client?.ws?.ping ?? null,
-      guilds: client?.guilds?.cache?.size ?? null,
-      userTag: client?.user ? `${client.user.username}#${client.user.discriminator}` : null,
-      lastInteractionAt: client?._lastInteractionAt ?? null,
-      lastReconnectAt: client?._lastReconnectAt ?? null,
-      watchdog: client?._watchdog ?? null,
-    };
-  } catch {
-    return {
-      ready: null,
-      wsPing: null,
-      guilds: null,
-      userTag: null,
-      lastInteractionAt: null,
-      lastReconnectAt: null,
-      watchdog: null,
-    };
-  }
 }
 
 function startMonitorServer(client) {
@@ -62,7 +36,7 @@ function startMonitorServer(client) {
 
       if (path === "/stats") {
         const mem = process.memoryUsage();
-        const payload = {
+        return sendJson(res, 200, {
           ok: true,
           ts: Date.now(),
           pid: process.pid,
@@ -76,20 +50,21 @@ function startMonitorServer(client) {
           cpus: os.cpus()?.length ?? null,
           freeMemMB: Math.round((os.freemem() / 1024 / 1024) * 10) / 10,
           totalMemMB: Math.round((os.totalmem() / 1024 / 1024) * 10) / 10,
-          bot: getClientSnapshot(client),
-        };
-        return sendJson(res, 200, payload);
+          bot: {
+            ready: typeof client?.isReady === "function" ? client.isReady() : null,
+            wsPing: client?.ws?.ping ?? null,
+            guilds: client?.guilds?.cache?.size ?? null,
+            userTag: client?.user ? `${client.user.username}#${client.user.discriminator}` : null,
+            lastInteractionAt: client?._lastInteractionAt ?? null,
+            lastReconnectAt: client?._lastReconnectAt ?? null,
+          },
+        });
       }
 
       return sendJson(res, 404, { ok: false, error: "not_found" });
-    } catch (err) {
-      console.error("[monitor] handler error:", err);
+    } catch (e) {
       return sendJson(res, 500, { ok: false, error: "server_error" });
     }
-  });
-
-  server.on("error", (err) => {
-    console.error("[monitor] server error:", err);
   });
 
   server.listen(port, host, () => {
@@ -98,3 +73,4 @@ function startMonitorServer(client) {
 }
 
 module.exports = { startMonitorServer };
+EOF
